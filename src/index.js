@@ -2,6 +2,7 @@ const express = require('express');
 const {ServerConfig, DB_Config} = require('./config');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const apiRoutes = require('./routes');
 
 
 const app = express();
@@ -24,6 +25,9 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+//API Routes
+app.use('/api', apiRoutes);
 
 
 app.listen(ServerConfig.PORT, ()=>{
