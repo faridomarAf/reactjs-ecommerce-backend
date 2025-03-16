@@ -1,8 +1,7 @@
 const User = require('../models/user.modle.js');
 const {StatusCodes} = require('http-status-codes');
-const {AppError} = require('../utils');
+const {AppError,GenerateTokens,StoreRefreshToken, SetCookies} = require('../utils');
 const {ErrorResponse, SuccessResponse} = require('../utils/common');
-
 
 const register = async(req, res)=>{
     const {name, email, password} = req.body;
@@ -18,7 +17,23 @@ const register = async(req, res)=>{
             password
         });
 
-        SuccessResponse.data = user;
+        //authentication
+        const {accessToken, refreshToken} = GenerateTokens(user._id);
+
+        //save refreshToken to redis-db
+        await StoreRefreshToken(user._id, refreshToken);
+
+        //to set cookies
+        SetCookies(res, accessToken, refreshToken)
+
+
+        SuccessResponse.data ={
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+        
         return res.status(StatusCodes.CREATED).json(SuccessResponse);
     } catch (error) {
         if(error instanceof AppError){
