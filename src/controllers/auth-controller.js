@@ -1,6 +1,6 @@
 const User = require('../models/user.modle.js');
 const {StatusCodes} = require('http-status-codes');
-const {AppError,GenerateTokens,StoreRefreshToken, SetCookies, ClearTokens} = require('../utils');
+const {AppError,GenerateTokens,StoreRefreshToken, SetCookies, ClearTokens, GenerateRefreshToken} = require('../utils');
 const {ErrorResponse, SuccessResponse} = require('../utils/common');
 
 const register = async(req, res)=>{
@@ -93,9 +93,18 @@ const logout = async (req, res) => {
     }
 };
 
+const refreshToken = async(req, res)=>{
+    try {
+        await GenerateRefreshToken(req, res);
+    } catch (error) {
+        return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+    }
+}
+
 
 module.exports ={
     register,
     login,
-    logout
+    logout,
+    refreshToken
 }

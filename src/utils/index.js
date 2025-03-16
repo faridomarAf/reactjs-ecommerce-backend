@@ -6,4 +6,5 @@ module.exports ={
     StoreRefreshToken: require('./tokens/store-refresh-token'),
     SetCookies: require('./tokens/setCookies'),
     ClearTokens: require('./tokens/clearTokens'),
+    GenerateRefreshToken: require('./tokens/generate-refreshToken'),
 }
