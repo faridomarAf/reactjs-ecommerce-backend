@@ -1,6 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
 const {ErrorResponse} = require('../utils/common');
-const {AppError} = require('../utils');
 
 const validateRegisterInput = (req, res, next) => {
 

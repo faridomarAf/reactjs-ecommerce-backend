@@ -1,6 +1,6 @@
 const User = require('../models/user.modle.js');
 const {StatusCodes} = require('http-status-codes');
-const {AppError,GenerateTokens,StoreRefreshToken, SetCookies} = require('../utils');
+const {AppError,GenerateTokens,StoreRefreshToken, SetCookies, ClearTokens} = require('../utils');
 const {ErrorResponse, SuccessResponse} = require('../utils/common');
 
 const register = async(req, res)=>{
@@ -33,7 +33,7 @@ const register = async(req, res)=>{
             email: user.email,
             role: user.role
         };
-        
+
         return res.status(StatusCodes.CREATED).json(SuccessResponse);
     } catch (error) {
         if(error instanceof AppError){
@@ -52,8 +52,13 @@ const login = async(req, res)=>{
 };
 
 
-const logout = async(req, res)=>{
-    return res.status(200).json({message: 'logout roues'})
+const logout = async (req, res) => {
+    try {
+        await ClearTokens(req, res);
+        res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+    }
 };
 
 

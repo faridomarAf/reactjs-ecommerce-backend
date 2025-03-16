@@ -5,5 +5,5 @@ module.exports ={
     GenerateTokens: require('./tokens/generate-tokens'),
     StoreRefreshToken: require('./tokens/store-refresh-token'),
     SetCookies: require('./tokens/setCookies'),
-
+    ClearTokens: require('./tokens/clearTokens'),
 }

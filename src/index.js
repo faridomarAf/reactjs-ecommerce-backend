@@ -22,8 +22,8 @@ app.use(cors({
     credentials: true// allows us to login and register
 }));
 
-app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({extended: true}));
 
 //API Routes
