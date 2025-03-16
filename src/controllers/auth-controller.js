@@ -47,9 +47,41 @@ const register = async(req, res)=>{
 };
 
 
-const login = async(req, res)=>{
-    return res.status(200).json({message: 'login roues'})
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user || !(await user.comparePassword(password))) {
+            throw new AppError("Invalid email or password", StatusCodes.UNAUTHORIZED);
+        }
+
+        const { accessToken, refreshToken } = GenerateTokens(user._id);
+        await StoreRefreshToken(user._id, refreshToken);
+        SetCookies(res, accessToken, refreshToken);
+
+        const SuccessResponse = {
+            message: "Login successful",
+            data: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        };
+
+        return res.status(StatusCodes.OK).json(SuccessResponse);
+    } catch (error) {
+        const ErrorResponse = { error: error.message };
+
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json(ErrorResponse);
+        }
+
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
+    }
 };
+
 
 
 const logout = async (req, res) => {
@@ -57,7 +89,7 @@ const logout = async (req, res) => {
         await ClearTokens(req, res);
         res.json({ message: 'Logged out successfully' });
     } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+        return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
     }
 };
 

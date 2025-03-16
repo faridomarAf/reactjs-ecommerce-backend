@@ -1,4 +1,4 @@
 
 module.exports ={
-    AuthError: require('./auth-middleware'),
+    AuthMiddleware: require('./auth-middleware'),
 }
