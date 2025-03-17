@@ -41,6 +41,9 @@ const validateLoginInput = (req, res, next) => {
 const protectRoute = async (req, res, next) => {
     try {
         const accessToken = req.cookies?.accessToken;
+
+        console.log({accessToken});
+        
         
         if (!accessToken) {
             return next(new AppError("Unauthorized: No token provided", StatusCodes.UNAUTHORIZED));
@@ -61,12 +64,17 @@ const protectRoute = async (req, res, next) => {
     }
 };
 
-module.exports = protectRoute;
-
-
+const adminRoute = (req, res, next)=>{
+    if(req.user && req.user.role === 'admin'){
+        next();
+    }else{
+        return next(new AppError('Access denied, Only Admin'))
+    }
+}
 
 module.exports = {
     validateRegisterInput,
     validateLoginInput,
     protectRoute,
+    adminRoute
 };
