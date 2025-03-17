@@ -2,6 +2,7 @@ const Products = require('../models/product.model.js');
 const {ErrorResponse, SuccessResponse} = require('../utils/common');
 const {Cloudinary} = require('../config');
 const {StatusCodes} = require('http-status-codes');
+const { response } = require('express');
 
 
 
@@ -29,9 +30,22 @@ const createProduct = async(req, res)=>{
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
     }
 
+};
+
+
+const getAllProducts = async(req, res)=>{
+    try {
+        const products = await Products.find({});
+        SuccessResponse.data = products;
+        return res.status(StatusCodes.OK).json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+    }
 }
 
 
 module.exports ={
     createProduct,
+    getAllProducts,
 }
