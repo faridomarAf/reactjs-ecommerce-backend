@@ -4,51 +4,38 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.modle.js');
 const { AppError } = require('../utils');
 
-
 const validateRegisterInput = (req, res, next) => {
-
-    if(!req.body.name){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Name is required!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+    if (!req.body.name) {
+        return next(new AppError("Name is required!", StatusCodes.BAD_REQUEST));
     }
 
-    if(!req.body.email){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Email is required!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+    if (!req.body.email) {
+        return next(new AppError("Email is required!", StatusCodes.BAD_REQUEST));
     }
 
-    if(!req.body.password){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Password is required!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+    if (!req.body.password) {
+        return next(new AppError("Password is required!", StatusCodes.BAD_REQUEST));
     }
 
-    if(req.body.password.length < 6){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Password must be at least 6 characters!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
-    }
-    next();
-};
-
-const validateLoginInput = (req, res, next)=>{
-    if(!req.body.email){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Email is required!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
-    }
-
-    if(!req.body.password){
-        ErrorResponse.message = 'Something went wrong while registering user';
-        ErrorResponse.error=  "Password is required!"
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+    if (req.body.password.length < 6) {
+        return next(new AppError("Password must be at least 6 characters!", StatusCodes.BAD_REQUEST));
     }
 
     next();
 };
 
+
+const validateLoginInput = (req, res, next) => {
+    if (!req.body.email) {
+        return next(new AppError("Email is required!", StatusCodes.BAD_REQUEST));
+    }
+
+    if (!req.body.password) {
+        return next(new AppError("Password is required!", StatusCodes.BAD_REQUEST));
+    }
+
+    next();
+};
 
 
 const protectRoute = async (req, res, next) => {
