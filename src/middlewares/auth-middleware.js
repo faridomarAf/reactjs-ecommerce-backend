@@ -1,5 +1,9 @@
 const { StatusCodes } = require('http-status-codes');
 const {ErrorResponse} = require('../utils/common');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user.modle.js');
+const { AppError } = require('../utils');
+
 
 const validateRegisterInput = (req, res, next) => {
 
@@ -46,7 +50,36 @@ const validateLoginInput = (req, res, next)=>{
 };
 
 
+
+const protectRoute = async (req, res, next) => {
+    try {
+        const accessToken = req.cookies?.accessToken;
+        
+        if (!accessToken) {
+            return next(new AppError("Unauthorized: No token provided", StatusCodes.UNAUTHORIZED));
+        }
+
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+        const user = await User.findById(decoded.userId).select('-password');
+
+        if (!user) {
+            return next(new AppError("Unauthorized: User not found", StatusCodes.UNAUTHORIZED));
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        return next(new AppError(error.message || "Invalid token", StatusCodes.FORBIDDEN));
+    }
+};
+
+module.exports = protectRoute;
+
+
+
 module.exports = {
     validateRegisterInput,
-    validateLoginInput
+    validateLoginInput,
+    protectRoute,
 };

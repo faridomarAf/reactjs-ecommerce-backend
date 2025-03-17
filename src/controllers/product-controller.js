@@ -33,16 +33,32 @@ const createProduct = async(req, res)=>{
 };
 
 
-const getAllProducts = async(req, res)=>{
+// const getAllProducts = async(req, res)=>{
+//     try {
+//         const products = await Products.find({});
+//         SuccessResponse.data = products;
+//         return res.status(StatusCodes.OK).json(SuccessResponse);
+//     } catch (error) {
+        
+//         ErrorResponse.error = error;
+//         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
+//     }
+// }
+
+const getAllProducts = async (req, res, next) => {
     try {
         const products = await Products.find({});
-        SuccessResponse.data = products;
-        return res.status(StatusCodes.OK).json(SuccessResponse);
+
+        return res.status(StatusCodes.OK).json({
+            success: true,
+            data: products,
+            message: "Products fetched successfully!",
+        });
+
     } catch (error) {
-        ErrorResponse.error = error;
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+        return next(new AppError(error.message || "Failed to fetch products", StatusCodes.INTERNAL_SERVER_ERROR));
     }
-}
+};
 
 
 module.exports ={

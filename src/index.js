@@ -3,7 +3,7 @@ const {ServerConfig, DB_Config} = require('./config');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const apiRoutes = require('./routes');
-
+const {ErrorHandler} = require('./middlewares');
 
 const app = express();
 
@@ -28,6 +28,8 @@ app.use(express.urlencoded({extended: true}));
 
 //API Routes
 app.use('/api', apiRoutes);
+
+app.use(ErrorHandler)
 
 
 app.listen(ServerConfig.PORT, ()=>{
