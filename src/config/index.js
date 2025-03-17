@@ -4,4 +4,5 @@ module.exports = {
     DB_Config: require('./DB-config'),
     DB_Config: require('./DB-config'),
     Redis: require('./redis'),
+    Cloudinary: require('./cloudinary'),
 }
