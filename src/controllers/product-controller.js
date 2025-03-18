@@ -74,6 +74,7 @@ const getFeaturedProducts = async (req, res, next) => {
     }
 };
 
+
 const deleteProduct = async(req, res, next)=>{
     try {
         const product = await Products.findById(req.params.id);
@@ -147,11 +148,42 @@ const getRecommendedProducts = async (req, res, next) => {
 };
 
 
+const getProductsByCategory = async (req, res, next) => {
+    try {
+        const { category } = req.params;
+
+        // Use case-insensitive regex search
+        const products = await Products.find({
+            category: { $regex: new RegExp(`^${category}$`, "i") }
+        }).lean();
+
+        if (!products.length) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                message: "No products found in this category",
+            });
+        }
+
+        res.status(StatusCodes.OK).json({
+            success: true,
+            data: products,
+            message: `Products fetched successfully for category: ${category}`,
+        });
+
+    } catch (error) {
+        next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
+
+
+
 
 module.exports ={
     createProduct,
     getAllProducts,
     getFeaturedProducts,
     deleteProduct,
-    getRecommendedProducts
+    getRecommendedProducts,
+    getProductsByCategory
 }

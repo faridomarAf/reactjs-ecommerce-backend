@@ -9,6 +9,7 @@ router.get('/',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductCon
 router.delete('/:id',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductController.deleteProduct);
 router.get('/featured', ProductController.getFeaturedProducts);
 router.get('/recommendations', ProductController.getFeaturedProducts);
+router.get('/category/:category', ProductController.getProductsByCategory);
 
 
 module.exports = router;
