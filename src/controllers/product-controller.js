@@ -30,6 +30,8 @@ const createProduct = async (req, res, next) => {
         });
 
     } catch (error) {
+        console.log(error);
+        
         next(new AppError(error.message || "Failed to create product", StatusCodes.INTERNAL_SERVER_ERROR));
     }
 };
@@ -72,9 +74,33 @@ const getFeaturedProducts = async (req, res, next) => {
     }
 };
 
+const deleteProduct = async(req, res, next)=>{
+    try {
+        const product = await Products.findById(req.params.id);
+        if(!product){
+            return next(new AppError('No product found!', StatusCodes.NOT_FOUND));
+        }
+
+        if(product.image){
+            const publicId = product.image.split('/').pop().split('.')[0];
+            try {
+                await Cloudinary.uploader.destroy(`products/${publicId}`);
+            } catch (error) {
+                next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR))
+            }
+        }
+
+        await Products.findByIdAndDelete(req.params.id);
+        return res.status(StatusCodes.OK).json({message: 'Product deleted successfully'});
+    } catch (error) {
+        next(new AppError(error.message || 'failed to delete product', StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+}
+
 
 module.exports ={
     createProduct,
     getAllProducts,
-    getFeaturedProducts
+    getFeaturedProducts,
+    deleteProduct,
 }
