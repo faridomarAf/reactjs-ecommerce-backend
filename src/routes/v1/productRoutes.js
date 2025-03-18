@@ -8,6 +8,7 @@ router.post('/',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductCo
 router.get('/',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductController.getAllProducts);
 router.delete('/:id',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductController.deleteProduct);
 router.get('/featured', ProductController.getFeaturedProducts);
+router.get('/recommendations', ProductController.getFeaturedProducts);
 
 
 module.exports = router;

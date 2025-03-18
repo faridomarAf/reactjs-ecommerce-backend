@@ -95,7 +95,57 @@ const deleteProduct = async(req, res, next)=>{
     } catch (error) {
         next(new AppError(error.message || 'failed to delete product', StatusCodes.INTERNAL_SERVER_ERROR));
     }
-}
+};
+
+// const getRecommendedProducts = async (req, res, next) => {
+//     try {
+//         const products = await Products.aggregate([
+//             { $sample: { size: 3 } },
+//             { $project: { _id: 1, name: 1, description: 1, image: 1, price: 1 } }
+//         ]);
+
+//         return res.status(StatusCodes.OK).json({
+//             success: true,
+//             data: products,
+//             message: "Recommended products fetched successfully!"
+//         });
+
+//     } catch (error) {
+//         next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+//     }
+// };
+
+
+
+const getRecommendedProducts = async (req, res, next) => {
+    try {
+        const totalCount = await Products.countDocuments({ isFeatured: true });
+
+        if (totalCount === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                success: false,
+                message: "No recommended products found!",
+            });
+        }
+
+        const randomSkip = Math.max(0, Math.floor(Math.random() * (totalCount - 3)));
+
+        const products = await Products.find({ isFeatured: true })
+            .skip(randomSkip)
+            .limit(3)
+            .select("_id name description image price");
+
+        res.status(StatusCodes.OK).json({
+            success: true,
+            data: products,
+            message: "Recommended products fetched successfully!",
+        });
+
+    } catch (error) {
+        next(new AppError(error.message || "Failed to fetch recommended products", StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
 
 
 module.exports ={
@@ -103,4 +153,5 @@ module.exports ={
     getAllProducts,
     getFeaturedProducts,
     deleteProduct,
+    getRecommendedProducts
 }
