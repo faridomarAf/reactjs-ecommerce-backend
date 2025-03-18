@@ -41,9 +41,6 @@ const validateLoginInput = (req, res, next) => {
 const protectRoute = async (req, res, next) => {
     try {
         const accessToken = req.cookies?.accessToken;
-
-        console.log({accessToken});
-        
         
         if (!accessToken) {
             return next(new AppError("Unauthorized: No token provided", StatusCodes.UNAUTHORIZED));

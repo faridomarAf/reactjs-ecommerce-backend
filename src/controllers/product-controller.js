@@ -1,49 +1,40 @@
 const Products = require('../models/product.model.js');
-const {ErrorResponse, SuccessResponse} = require('../utils/common');
 const {Cloudinary} = require('../config');
 const {StatusCodes} = require('http-status-codes');
-const { response } = require('express');
+const {Redis} = require('../config');
+const {AppError} = require('../utils');
 
 
-
-const createProduct = async(req, res)=>{
-    const {name, description, price, image, category} = req.body;
+const createProduct = async (req, res, next) => {
     try {
-        let cloudinaryResponse = null;
+        const { name, description, price, image, category } = req.body;
+        let imageUrl = "";
 
-        if(image){
-            cloudinaryResponse = await Cloudinary.uploader.upload(image,{folder:'products'});
+        if (image) {
+            const cloudinaryResponse = await Cloudinary.uploader.upload(image, { folder: 'products' });
+            imageUrl = cloudinaryResponse.secure_url;
         }
 
         const product = await Products.create({
             name,
             description,
             price,
-            image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",//incase there be no image
+            image: imageUrl,
             category
         });
 
-        SuccessResponse.data = product;
-        return res.status(StatusCodes.CREATED).json(SuccessResponse);
-    } catch (error) {
-        ErrorResponse.error = error;
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
-    }
+        return res.status(StatusCodes.CREATED).json({
+            success: true,
+            data: product,
+            message: "Product created successfully!"
+        });
 
+    } catch (error) {
+        next(new AppError(error.message || "Failed to create product", StatusCodes.INTERNAL_SERVER_ERROR));
+    }
 };
 
 
-// const getAllProducts = async(req, res)=>{
-//     try {
-//         const products = await Products.find({});
-//         SuccessResponse.data = products;
-//         return res.status(StatusCodes.OK).json(SuccessResponse);
-//     } catch (error) {
-        
-//         ErrorResponse.error = error;
-//         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
-//     }
-// }
 
 const getAllProducts = async (req, res, next) => {
     try {
@@ -60,8 +51,30 @@ const getAllProducts = async (req, res, next) => {
     }
 };
 
+const getFeaturedProducts = async (req, res, next) => {
+    try {
+        let featuredProducts = await Redis.get('featured_products');
+        if (featuredProducts) {
+            return res.status(StatusCodes.OK).json(JSON.parse(featuredProducts));
+        }
+
+        featuredProducts = await Products.find({ isFeatured: true }).lean();
+
+        if (featuredProducts.length === 0) {
+            return next(new AppError("No featured products found!", StatusCodes.NOT_FOUND));
+        }
+
+        await Redis.set('featured_products', JSON.stringify(featuredProducts), 'EX', 60 * 60);
+
+        return res.status(StatusCodes.OK).json(featuredProducts);
+    } catch (error) {
+        next(new AppError(error.message || "Failed to fetch featured products", StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
 
 module.exports ={
     createProduct,
     getAllProducts,
+    getFeaturedProducts
 }
