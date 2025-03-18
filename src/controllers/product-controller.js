@@ -176,7 +176,42 @@ const getProductsByCategory = async (req, res, next) => {
 };
 
 
+const toggleFeaturedProducts = async (req, res, next) => {
+    try {
+        const { id } = req.params;
 
+        const product = await Products.findById(id);
+        if (!product) {
+            return next(new AppError("Product not found", StatusCodes.NOT_FOUND));
+        }
+
+        // Toggle isFeatured status
+        product.isFeatured = !product.isFeatured;
+        await product.save();
+
+        // Update Redis cache in the background
+        updateFeaturedProductsCache().catch(err => console.error("Redis cache update failed:", err));
+
+        return res.status(StatusCodes.OK).json({
+            success: true,
+            data: product,
+            message: "Product featured status updated successfully!",
+        });
+
+    } catch (error) {
+        next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
+// Update Redis cache for featured products
+const updateFeaturedProductsCache = async () => {
+    try {
+        const featuredProducts = await Products.find({ isFeatured: true }).lean();
+        await Redis.set("featured_products", JSON.stringify(featuredProducts));
+    } catch (error) {
+        console.error("Error updating Redis cache:", error);
+    }
+};
 
 
 module.exports ={
@@ -185,5 +220,6 @@ module.exports ={
     getFeaturedProducts,
     deleteProduct,
     getRecommendedProducts,
-    getProductsByCategory
+    getProductsByCategory,
+    toggleFeaturedProducts
 }

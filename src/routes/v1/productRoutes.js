@@ -10,6 +10,6 @@ router.delete('/:id',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,Prod
 router.get('/featured', ProductController.getFeaturedProducts);
 router.get('/recommendations', ProductController.getFeaturedProducts);
 router.get('/category/:category', ProductController.getProductsByCategory);
-
+router.patch('/:id',AuthMiddleware.protectRoute, AuthMiddleware.adminRoute,ProductController.toggleFeaturedProducts);
 
 module.exports = router;
