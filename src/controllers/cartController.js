@@ -5,7 +5,7 @@ const {AppError} = require('../utils');
 const addToCart = async (req, res, next) => {
     try {
         const { productId } = req.body;
-        const user = req.user; // Extracted from token in a protected route
+        const user = req.user;
 
         if (!productId) {
             return next(new AppError("Product ID is required", StatusCodes.BAD_REQUEST));
@@ -31,7 +31,30 @@ const addToCart = async (req, res, next) => {
     }
 };
 
+const deleteAllFromCart = async (req, res, next) => {
+    try {
+        const { productId } = req.body;
+        const user = req.user;
+
+        if (!productId) {
+            user.cartItems = [];
+        } else {
+            user.cartItems = user.cartItems.filter(item => item.id !== productId);
+        }
+
+        await user.save();
+
+        return res.status(StatusCodes.OK).json({
+            success: true,
+            data: user.cartItems,
+            message: productId ? "Item removed from cart successfully!" : "All items removed from cart successfully!"
+        });
+    } catch (error) {
+        next(new AppError(error.message || "Failed to delete item from cart", StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
 
 module.exports ={
     addToCart,
+    deleteAllFromCart
 }
