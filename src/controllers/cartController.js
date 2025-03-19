@@ -54,7 +54,39 @@ const deleteAllFromCart = async (req, res, next) => {
     }
 };
 
+const updateQuantity = async (req, res, next)=>{
+    try {
+        const {id: productId} = req.params;
+        const {quantity} = req.body;
+        const user = req.user;
+        const existingItem = user.cartItems.find((item)=> item.id === productId);
+
+        if(existingItem){
+            if(quantity === 0){
+                user.cartItems = user.cartItems.filter((item)=> item.id !== productId);
+                await user.save();
+                return res.json(user.cartItems)
+            }
+            // if quantity not equal to zero
+            existingItem.quantity = quantity;
+            await user.save();
+            return res.status(StatusCodes.OK).json({
+                success: true,
+                data: user.cartItems,
+                message: "Cart updated successfully!"
+            });
+
+        }else{
+            next(new AppError("Item not found!", StatusCodes.NOT_FOUND));
+        }
+    } catch (error) {
+        next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+}
+
+
 module.exports ={
     addToCart,
-    deleteAllFromCart
+    deleteAllFromCart,
+    updateQuantity
 }
