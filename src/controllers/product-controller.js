@@ -98,25 +98,6 @@ const deleteProduct = async(req, res, next)=>{
     }
 };
 
-// const getRecommendedProducts = async (req, res, next) => {
-//     try {
-//         const products = await Products.aggregate([
-//             { $sample: { size: 3 } },
-//             { $project: { _id: 1, name: 1, description: 1, image: 1, price: 1 } }
-//         ]);
-
-//         return res.status(StatusCodes.OK).json({
-//             success: true,
-//             data: products,
-//             message: "Recommended products fetched successfully!"
-//         });
-
-//     } catch (error) {
-//         next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
-//     }
-// };
-
-
 
 const getRecommendedProducts = async (req, res, next) => {
     try {

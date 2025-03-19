@@ -1,5 +1,6 @@
 const {StatusCodes} = require('http-status-codes');
 const {AppError} = require('../utils');
+const Product = require('../models/product.model.js');
 
 
 const addToCart = async (req, res, next) => {
@@ -16,7 +17,7 @@ const addToCart = async (req, res, next) => {
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
-            user.cartItems.push({ id: productId, quantity: 1 });
+            user.cartItems.push(productId);
         }
 
         await user.save();
@@ -82,11 +83,44 @@ const updateQuantity = async (req, res, next)=>{
     } catch (error) {
         next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
     }
-}
+};
+
+
+const getCartProducts = async (req, res, next) => {
+    try {
+        const user = req.user;
+
+        if (!user.cartItems.length) {
+            return res.status(StatusCodes.OK).json({
+                success: true,
+                data: [],
+                message: "Cart is empty",
+            });
+        }
+
+        const productIds = user.cartItems.map(item => item.id);
+        const products = await Product.find({ _id: { $in: productIds } });
+
+        const cartItems = products.map(product => {
+            const item = user.cartItems.find(cartItem => cartItem.id === product.id);
+            return { ...product.toJSON(), quantity: item.quantity };
+        });
+
+        return res.status(StatusCodes.OK).json({
+            success: true,
+            data: cartItems,
+            message: "Cart products retrieved successfully!",
+        });
+    } catch (error) {
+        next(new AppError(error.message || "Failed to get cart products", StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
 
 
 module.exports ={
     addToCart,
     deleteAllFromCart,
-    updateQuantity
+    updateQuantity,
+    getCartProducts
 }
