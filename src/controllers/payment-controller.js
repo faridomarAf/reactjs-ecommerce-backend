@@ -1,0 +1,95 @@
+const Order = require('../models/order.model.js');
+const {StatusCodes} = require('http-status-codes');
+const {AppError} = require('../utils');
+const Coupon = require('../models/coupon.model.js');
+const {Stripe} = require('../config');
+
+
+
+const createCheckoutSession = async(req, res, next)=>{
+    try {
+        const {products, couponCode} = req.body;
+        if(!Array.isArray(products) || products.length === 0){
+            return next(new AppError('Invalid or empty product array!', StatusCodes.BAD_REQUEST));
+        };
+
+        let totalAmount = 0;
+
+        const lineItems = products.map((product)=>{
+            const amount = Math.round(product.price * 100); 
+            totalAmount += amount * product.quantity;
+
+            return {
+                price_data:{
+                    currency: 'USD',
+                    product_data:{
+                        name: product.name,
+                        image: [product.image]
+                    },
+                    unit_amount: amount
+                }
+            }
+        });
+
+        let coupon = null;
+        if(couponCode){
+            coupon = await Coupon.findOne({code: couponCode, userId: req.user, isActive: true});
+            if(coupon){
+                totalAmount -= Math.round(totalAmount * coupon.discountPercentage / 100);
+            }
+        }
+
+        //create session
+        const session = await Stripe.checkout.session.create({
+            payment_method_types : ['card'],
+            line_items: lineItems,
+            mode: 'payment',
+            success_url: `${process.env.CLIENT_URL}/purchase-success?.session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/purchase-cancel}`,
+            discounts: coupon ? [{coupon: await createStripeCoupon(coupon.discountPercentage)},] : [],
+            metadata:{
+                userId: req.user._id.toString(),
+                couponCode: couponCode || ""
+            } , 
+        });
+
+        //create coupon and add it to DB
+        if(totalAmount >= 2000){// 2000 is '200 dolar'
+            await createNewCoupon(req.user._id);
+        }
+
+        return res.status(StatusCodes.CREATED).json({
+            id: session.id,
+            totalAmount: totalAmount / 100,
+        }); 
+
+    } catch (error) {
+        next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+};
+
+//to create one-time use coupon
+async function createStripeCoupon(discountPercentage){
+    const coupon = await Stripe.coupons.create({
+        percentage_off: discountPercentage,
+        duration: "once"
+    });
+
+    return coupon.id;
+};
+
+async function createNewCoupon(userId){
+    const newCoupon = await Coupon({
+        code: 'GIFT' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        discountPercentage: 10,
+        expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),// 30 days
+        userId: userId
+    });
+
+    await newCoupon.save();
+    return newCoupon;
+};
+
+module.exports ={
+    createCheckoutSession,
+};

@@ -5,4 +5,5 @@ module.exports = {
     DB_Config: require('./DB-config'),
     Redis: require('./redis'),
     Cloudinary: require('./cloudinary'),
+    Stripe: require('./stripe'),
 }
