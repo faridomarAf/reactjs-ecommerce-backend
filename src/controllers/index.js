@@ -5,4 +5,5 @@ module.exports ={
     CartController: require('./cartController'),
     CouponController: require('./coupon-controller'),
     PaymentController: require('./payment-controller'),
+    AnalyticsController: require('./analytics-controller'),
 }
