@@ -101,10 +101,20 @@ const refreshToken = async(req, res)=>{
     }
 }
 
+const getProfile = async(req, res, next)=>{
+    try {
+        const user = req.user;
+        return res.status(StatusCodes.OK).json(user)
+    } catch (error) {
+        next(new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR));
+    }
+}
+
 
 module.exports ={
     register,
     login,
     logout,
-    refreshToken
+    refreshToken,
+    getProfile
 }

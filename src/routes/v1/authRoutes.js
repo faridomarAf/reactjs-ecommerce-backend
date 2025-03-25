@@ -9,6 +9,7 @@ router.post('/register', AuthMiddleware.validateRegisterInput,AuthController.reg
 router.post('/logout',AuthController.logout);
 router.post('/login',AuthMiddleware.validateLoginInput,AuthController.login);
 router.post('/refresh-token',AuthController.refreshToken);
+router.get('/profile', AuthMiddleware.protectRoute ,AuthController.getProfile);
 
 
 module.exports = router;
